@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 6</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            background-color: #fff;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 30px 0 15px 0;
+            color: #333;
+        }
+
+        /* Like/Dislike Buttons Container */
+        .vote-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .vote-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 15px 30px;
+            font-size: 2rem;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            background-color: #f5f5f5;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .vote-btn:hover:not(:disabled) {
+            background-color: #e8e8e8;
+            transform: scale(1.05);
+        }
+
+        .vote-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .vote-btn.voted {
+            border-color: #4CAF50;
+            background-color: #e8f5e9;
+        }
+
+        .vote-btn .count {
+            font-weight: bold;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: Arial, sans-serif;
+        }
+
+        textarea::placeholder {
+            color: #999;
+        }
+
+        textarea:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        /* Buttons Container */
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit {
+            background-color: #444;
+            color: white;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background-color: #333;
+        }
+
+        .btn-submit:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background-color: #555;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background-color: #444;
+        }
+
+        /* Comments Display */
+        .comments-list {
+            margin-top: 20px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .comment-item {
+            background-color: #f9f9f9;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .comment-item.dislike {
+            border-left-color: #f44336;
+        }
+
+        .comment-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        /* Status Messages */
+        .status-message {
+            margin-top: 15px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .status-message.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .status-message.success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+
+        .status-message.warning {
+            background-color: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ffcc80;
+        }
+
+        .status-message.info {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #90caf9;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Button Animation */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .vote-btn.animate {
+            animation: pulse 0.3s ease;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .vote-btn {
+                padding: 12px 20px;
+                font-size: 1.5rem;
+            }
+
+            .comments-section {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Lab 6</h1>
+    <h2>Like or dislike</h2>
+
+    <!-- Like/Dislike Buttons -->
+    <div class="vote-container">
+        <button class="vote-btn" id="likeBtn" onclick="handleVote('like')">
+            👍<span class="count" id="likeCount">100</span>
+        </button>
+        <button class="vote-btn" id="dislikeBtn" onclick="handleVote('dislike')">
+            👎<span class="count" id="dislikeCount">20</span>
+        </button>
+    </div>
+
+    <!-- Status Message -->
+    <div class="status-message" id="statusMessage"></div>
+
+    <!-- Comments Section -->
+    <div class="comments-section">
+        <h3>Comments</h3>
+        <textarea 
+            id="commentInput" 
+            placeholder="Write a comment..."
+        ></textarea>
+
+        <div class="btn-container">
+            <button class="btn btn-submit" id="submitBtn" onclick="submitComment()">Submit</button>
+            <button class="btn btn-clear" onclick="resetAll()">Clear</button>
+        </div>
+
+        <!-- Comments List -->
+        <div class="comments-list" id="commentsList"></div>
+    </div>
+
+    <script>
+        // ============================================
+        // Cookie Helper Functions
+        // ============================================
+        
+        /**
+         * Sets a cookie with the given name, value, and expiration days
+         * @param {string} name - Cookie name
+         * @param {string} value - Cookie value
+         * @param {number} days - Number of days until expiration
+         */
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
+        }
+
+        /**
+         * Gets the value of a cookie by name
+         * @param {string} name - Cookie name
+         * @returns {string|null} - Cookie value or null if not found
+         */
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return decodeURIComponent(cookie.substring(cookieName.length));
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Deletes a cookie by setting its expiration to the past
+         * @param {string} name - Cookie name to delete
+         */
+        function deleteCookie(name) {
+            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+        }
+
+        // ============================================
+        // State Variables
+        // ============================================
+        
+        let likeCount = 100;      // Initial like count
+        let dislikeCount = 20;    // Initial dislike count
+        let userVote = null;      // User's current vote ('like', 'dislike', or null)
+        let userComment = null;   // User's submitted comment
+        let comments = [];        // Array to store all comments
+
+        // ============================================
+        // DOM Elements
+        // ============================================
+        
+        const likeBtn = document.getElementById('likeBtn');
+        const dislikeBtn = document.getElementById('dislikeBtn');
+        const likeCountEl = document.getElementById('likeCount');
+        const dislikeCountEl = document.getElementById('dislikeCount');
+        const commentInput = document.getElementById('commentInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const commentsList = document.getElementById('commentsList');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // ============================================
+        // UI Update Functions
+        // ============================================
+        
+        /**
+         * Updates the like and dislike counters in the UI
+         */
+        function updateCounters() {
+            likeCountEl.textContent = likeCount;
+            dislikeCountEl.textContent = dislikeCount;
+        }
+
+        /**
+         * Updates the button states based on user's vote
+         */
+        function updateButtonStates() {
+            // Remove voted class from both buttons
+            likeBtn.classList.remove('voted');
+            dislikeBtn.classList.remove('voted');
+            
+            // If user has voted, disable buttons and highlight chosen one
+            if (userVote) {
+                likeBtn.disabled = true;
+                dislikeBtn.disabled = true;
+                
+                if (userVote === 'like') {
+                    likeBtn.classList.add('voted');
+                } else {
+                    dislikeBtn.classList.add('voted');
+                }
+            } else {
+                likeBtn.disabled = false;
+                dislikeBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Updates the comment input state based on whether user has commented
+         */
+        function updateCommentState() {
+            if (userComment) {
+                commentInput.disabled = true;
+                submitBtn.disabled = true;
+                commentInput.value = "You have already submitted a comment.";
+            } else {
+                commentInput.disabled = false;
+                submitBtn.disabled = false;
+                commentInput.value = "";
+            }
+        }
+
+        /**
+         * Renders all comments in the comments list
+         */
+        function renderComments() {
+            commentsList.innerHTML = '';
+            
+            comments.forEach(comment => {
+                const commentEl = document.createElement('div');
+                commentEl.className = 'comment-item' + (comment.vote === 'dislike' ? ' dislike' : '');
+                
+                const labelEl = document.createElement('div');
+                labelEl.className = 'comment-label';
+                labelEl.textContent = comment.vote === 'like' ? '👍 Liked' : '👎 Disliked';
+                
+                const textEl = document.createElement('div');
+                textEl.textContent = comment.text;
+                
+                commentEl.appendChild(labelEl);
+                commentEl.appendChild(textEl);
+                commentsList.appendChild(commentEl);
+            });
+        }
+
+        /**
+         * Shows a status message to the user
+         * @param {string} message - Message to display
+         * @param {string} type - Message type ('success', 'warning', 'info')
+         */
+        function showMessage(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message show ' + type;
+            
+            // Hide message after 3 seconds
+            setTimeout(() => {
+                statusMessage.classList.remove('show');
+            }, 3000);
+        }
+
+        // ============================================
+        // Event Handlers
+        // ============================================
+        
+        /**
+         * Handles like or dislike button click
+         * @param {string} voteType - 'like' or 'dislike'
+         */
+        function handleVote(voteType) {
+            // Check if user has already voted
+            if (userVote) {
+                showMessage('You have already voted!', 'warning');
+                return;
+            }
+
+            // Record the vote
+            userVote = voteType;
+            
+            // Increment the appropriate counter
+            if (voteType === 'like') {
+                likeCount++;
+                likeBtn.classList.add('animate');
+                setTimeout(() => likeBtn.classList.remove('animate'), 300);
+            } else {
+                dislikeCount++;
+                dislikeBtn.classList.add('animate');
+                setTimeout(() => dislikeBtn.classList.remove('animate'), 300);
+            }
+
+            // Save to cookies
+            setCookie('userVote', userVote, 7);
+            setCookie('likeCount', likeCount, 7);
+            setCookie('dislikeCount', dislikeCount, 7);
+
+            // Update UI
+            updateCounters();
+            updateButtonStates();
+            
+            showMessage('Thank you for your vote!', 'success');
+        }
+
+        /**
+         * Handles comment submission
+         */
+        function submitComment() {
+            const commentText = commentInput.value.trim();
+
+            // Validate comment
+            if (!commentText) {
+                showMessage('Please write a comment before submitting.', 'warning');
+                return;
+            }
+
+            // Check if user has already commented
+            if (userComment) {
+                showMessage('You have already submitted a comment!', 'warning');
+                return;
+            }
+
+            // Check if user has voted (optional requirement)
+            if (!userVote) {
+                showMessage('Please vote before leaving a comment.', 'warning');
+                return;
+            }
+
+            // Save the comment
+            userComment = commentText;
+            
+            // Add to comments array
+            const newComment = {
+                text: commentText,
+                vote: userVote
+            };
+            comments.push(newComment);
+
+            // Save to cookies
+            setCookie('userComment', userComment, 7);
+            setCookie('comments', JSON.stringify(comments), 7);
+
+            // Update UI
+            renderComments();
+            updateCommentState();
+            
+            showMessage('Comment submitted successfully!', 'success');
+        }
+
+        /**
+         * Resets all user choices and comments
+         */
+        function resetAll() {
+            // Confirm reset
+            if (!confirm('Are you sure you want to reset your vote and comments?')) {
+                return;
+            }
+
+            // If user had voted, decrement the counter
+            if (userVote === 'like') {
+                likeCount--;
+            } else if (userVote === 'dislike') {
+                dislikeCount--;
+            }
+
+            // Remove user's comment from comments array
+            if (userComment) {
+                comments = comments.filter(c => c.text !== userComment);
+            }
+
+            // Reset state variables
+            userVote = null;
+            userComment = null;
+
+            // Delete user-specific cookies
+            deleteCookie('userVote');
+            deleteCookie('userComment');
+            
+            // Update count cookies
+            setCookie('likeCount', likeCount, 7);
+            setCookie('dislikeCount', dislikeCount, 7);
+            setCookie('comments', JSON.stringify(comments), 7);
+
+            // Update UI
+            updateCounters();
+            updateButtonStates();
+            updateCommentState();
+            renderComments();
+            
+            showMessage('Your vote and comment have been reset. You can vote again!', 'info');
+        }
+
+        // ============================================
+        // Initialization
+        // ============================================
+        
+        /**
+         * Loads saved state from cookies when page loads
+         */
+        function loadFromCookies() {
+            // Load counts
+            const savedLikeCount = getCookie('likeCount');
+            const savedDislikeCount = getCookie('dislikeCount');
+            
+            if (savedLikeCount !== null) {
+                likeCount = parseInt(savedLikeCount);
+            }
+            if (savedDislikeCount !== null) {
+                dislikeCount = parseInt(savedDislikeCount);
+            }
+
+            // Load user's vote
+            const savedVote = getCookie('userVote');
+            if (savedVote) {
+                userVote = savedVote;
+            }
+
+            // Load user's comment
+            const savedUserComment = getCookie('userComment');
+            if (savedUserComment) {
+                userComment = savedUserComment;
+            }
+
+            // Load all comments
+            const savedComments = getCookie('comments');
+            if (savedComments) {
+                try {
+                    comments = JSON.parse(savedComments);
+                } catch (e) {
+                    comments = [];
+                }
+            }
+
+            // Update UI with loaded state
+            updateCounters();
+            updateButtonStates();
+            updateCommentState();
+            renderComments();
+        }
+
+        // Initialize the application when the page loads
+        window.onload = loadFromCookies;
+    </script>
+</body>
+</html>
